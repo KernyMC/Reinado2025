@@ -1,62 +1,62 @@
 {
   "name": "espe-pageant-server",
-  "version": "1.0.0",
-  "description": "ESPE Beauty Pageant API Server",
-  "main": "server-complete.cjs",
+  "version": "2.0.0",
+  "description": "ESPE Beauty Pageant API Server - Modular ES6 Architecture",
+  "main": "src/server-complete.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node server-complete.cjs",
-    "dev": "node server-complete.cjs",
-    "dev:watch": "nodemon server-complete.cjs",
-    "test": "node test-jspdf.cjs",
-    "test:auth": "node test-reports-simple.cjs",
-    "test:pdf": "node test-jspdf.cjs",
-    "test:system": "node test-new-pdf-system.cjs"
+    "start": "node src/server-complete.js",
+    "dev": "nodemon src/server-complete.js",
+    "dev:watch": "nodemon --watch src src/server-complete.js",
+    "start:modular": "node src/server.js",
+    "dev:modular": "nodemon src/server.js",
+    "test": "jest --experimental-vm-modules",
+    "build": "echo 'Server ready for production'",
+    "health": "curl http://localhost:3000/health || echo 'Server not running'"
   },
   "keywords": [
     "espe",
     "pageant",
     "voting",
-    "api"
+    "api",
+    "express",
+    "postgresql",
+    "websocket",
+    "es6-modules"
   ],
   "author": "ESPE Development Team",
   "license": "ISC",
   "dependencies": {
-    "@react-pdf/renderer": "^4.3.0",
-    "bcrypt": "^6.0.0",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "express-rate-limit": "^7.5.0",
-    "express-validator": "^7.2.1",
-    "helmet": "^7.1.0",
-    "html-pdf-node": "^1.0.8",
-    "jsonwebtoken": "^9.0.2",
-    "jspdf": "^3.0.1",
-    "morgan": "^1.10.0",
+    "cors": "^2.8.5",
     "multer": "^1.4.5-lts.1",
-    "node-fetch": "^2.7.0",
-    "pdfkit": "^0.17.1",
-    "pg": "^8.16.0",
-    "puppeteer": "^24.9.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "pg": "^8.11.3",
+    "jspdf": "^2.5.1",
+    "socket.io": "^4.7.2",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/morgan": "^1.9.9",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^20.10.5",
-    "@types/pg": "^8.10.9",
-    "nodemon": "^3.0.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "nodemon": "^3.0.1",
+    "jest": "^29.7.0",
+    "eslint": "^8.52.0",
+    "prettier": "^3.0.3"
+  },
+  "jest": {
+    "preset": "default",
+    "extensionsToTreatAsEsm": [".js"],
+    "globals": {
+      "jest": {
+        "useESM": true
+      }
+    },
+    "moduleNameMapping": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

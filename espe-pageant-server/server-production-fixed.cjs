@@ -336,6 +336,88 @@ app.get('/api/events/active', extractUserFromToken, async (req, res) => {
   }
 });
 
+// Update event (Admin only)
+app.put('/api/events/:id', extractUserFromToken, async (req, res) => {
+  try {
+    // Check if user is authenticated and has admin privileges
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'superadmin')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo los administradores pueden modificar eventos'
+      });
+    }
+
+    const { id } = req.params;
+    const { name, event_type, description, status, weight, is_mandatory, bonus_percentage, is_active } = req.body;
+    
+    // ============ FIX: Obtener evento actual para validar campos ============
+    const previousEventResult = await executeQuery('SELECT * FROM events WHERE id = $1', [id]);
+    if (previousEventResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Evento no encontrado'
+      });
+    }
+    const previousEvent = previousEventResult.rows[0];
+    
+    // ============ FIX: Validar y usar valores por defecto ============
+    const updateData = {
+      name: name || previousEvent.name,
+      event_type: event_type || previousEvent.event_type || 'competition', // Valor por defecto
+      description: description !== undefined ? description : previousEvent.description,
+      status: status || previousEvent.status || 'active',
+      weight: weight !== undefined ? weight : previousEvent.weight,
+      is_mandatory: is_mandatory !== undefined ? is_mandatory : previousEvent.is_mandatory,
+      bonus_percentage: bonus_percentage !== undefined ? bonus_percentage : previousEvent.bonus_percentage,
+      is_active: is_active !== undefined ? is_active : previousEvent.is_active
+    };
+    
+    // Validar peso si es obligatorio
+    if (updateData.is_mandatory && updateData.weight !== undefined && updateData.weight <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Los eventos obligatorios deben tener un peso mayor a 0'
+      });
+    }
+
+    // Validar que el peso esté en rango válido
+    if (updateData.weight !== undefined && (updateData.weight < 0 || updateData.weight > 100)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El peso debe estar entre 0 y 100'
+      });
+    }
+    
+    console.log('🔧 Datos de actualización validados:', updateData);
+    // ========================================================================
+    
+    const result = await executeQuery(
+      'UPDATE events SET name = $1, event_type = $2, description = $3, status = $4, weight = $5, is_mandatory = $6, bonus_percentage = $7, is_active = $8, updated_at = NOW() WHERE id = $9 RETURNING *',
+      [updateData.name, updateData.event_type, updateData.description, updateData.status, updateData.weight, updateData.is_mandatory, updateData.bonus_percentage, updateData.is_active, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Evento no encontrado'
+      });
+    }
+    
+    console.log(`✅ Evento actualizado por admin ${req.user.email}:`, result.rows[0]);
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error updating event:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // ==================== SCORES ENDPOINTS ====================
 
 // Submit score

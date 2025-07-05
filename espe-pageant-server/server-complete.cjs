@@ -815,11 +815,25 @@ app.put('/api/events/:id', async (req, res) => {
     }
     const previousEvent = previousEventResult.rows[0];
     const previousStatus = previousEvent.is_active;
+    
+    // ============ FIX: Validar y usar valores por defecto ============
+    const updateData = {
+      name: name || previousEvent.name,
+      event_type: event_type || previousEvent.event_type || 'competition', // Valor por defecto
+      description: description !== undefined ? description : previousEvent.description,
+      status: status || previousEvent.status || 'active',
+      weight: weight !== undefined ? weight : previousEvent.weight,
+      is_mandatory: is_mandatory !== undefined ? is_mandatory : previousEvent.is_mandatory,
+      bonus_percentage: bonus_percentage !== undefined ? bonus_percentage : previousEvent.bonus_percentage,
+      is_active: is_active !== undefined ? is_active : previousEvent.is_active
+    };
+    
+    console.log('🔧 Datos de actualización validados:', updateData);
     // ===========================================================================
     
     const result = await executeQuery(
       'UPDATE events SET name = $1, event_type = $2, description = $3, status = $4, weight = $5, is_mandatory = $6, bonus_percentage = $7, is_active = $8, updated_at = NOW() WHERE id = $9 RETURNING *',
-      [name, event_type, description, status, weight, is_mandatory, bonus_percentage, is_active, id]
+      [updateData.name, updateData.event_type, updateData.description, updateData.status, updateData.weight, updateData.is_mandatory, updateData.bonus_percentage, updateData.is_active, id]
     );
     
     if (result.rows.length === 0) {
